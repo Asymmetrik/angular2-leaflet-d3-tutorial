@@ -1,6 +1,7 @@
 {
 	"name": "@asymmetrik/angular2-leaflet-d3-tutorial",
 	"artifactName": "angular2-leaflet-d3-tutorial",
+	"moduleName": "angular2LeafletD3Tutorial",
 	"description": "Tutorials for the Leaflet D3 plugin",
 	"version": "0.0.0",
 	"author": "Asymmetrik, Ltd.",
