@@ -113,7 +113,9 @@ module.exports = () => {
 	wpConfig.plugins.push(
 		new webpack.ProvidePlugin({
 			// Declare global libraries here (eg. D3, JQuery, etc)
-			// d3: 'd3'
+			d3: 'd3',
+			xml2js: 'xml2js',
+			L: 'leaflet'
 		}),
 		new webpack.optimize.CommonsChunkPlugin({
 			name: 'vendor',
