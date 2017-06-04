@@ -43,22 +43,33 @@ implements OnInit {
 		center: L.latLng([ 46.879966, -121.726909 ])
 	};
 
-	dimensions: any = [
-		{
-			label: 'Time since start',
-			fn: this.avg((d: any) => { return d.ts; })
+	dimensions: string[] = [ 'elevation', 'time', 'count', 'hr' ];
+	dimensionsMap: any = {
+		elevation: {
+			label: 'Elevation',
+			fn: this.avg((d: any) => {
+				return d.elevation;
+			})
 		},
-		{
+		time: {
+			label: 'Time since start',
+			fn: this.avg((d: any) => {
+				return d.ts;
+			})
+		},
+		count: {
 			label: 'Number of samples',
 			fn: (b: any[]) => {
 				return b.length;
 			}
 		},
-		{
+		hr: {
 			label: 'Heart Rate',
-			fn: this.avg((d: any) => { return d.hr; })
+			fn: this.avg((d: any) => {
+				return d.hr;
+			})
 		}
-	];
+	};
 
 	model = {
 		colorDimension: this.dimensions[0],
@@ -116,7 +127,10 @@ implements OnInit {
 
 						let name = result.gpx.trk[0].name[0];
 						let points = result.gpx.trk[0].trkseg[0].trkpt.map(this.transformPoint);
-						let polyline = L.polyline(points.map((d: any) => { return [ d.lat, d.lng ]; }), { color: 'red' });
+						let polyline = L.polyline(points.map((d: any) => { return [ d.lat, d.lng ]; }), {
+							color: 'tomato',
+							weight: 2
+						});
 						let hexLayer = this.generateLayer(name, points);
 
 						// Update the layers control
@@ -146,6 +160,7 @@ implements OnInit {
 
 		let toReturn: any = {
 			name,
+			layer: undefined,
 			options: {
 				radius: 10,
 				opacity: 0.7,
@@ -156,23 +171,31 @@ implements OnInit {
 			},
 			data: points,
 			ready: (hexLayer: L.HexbinLayer) => {
+				toReturn.layer = hexLayer;
+
 				hexLayer.lat((d: any) => { return d.lat; });
 				hexLayer.lng((d: any) => { return d.lng; });
 
-				hexLayer.radiusValue((d: any) => { return this.model.radiusDimension.fn(d); });
-				hexLayer.colorValue((d: any) => { return this.model.colorDimension.fn(d); });
+				hexLayer.radiusValue((d: any) => { return this.dimensionsMap[this.model.radiusDimension].fn(d); });
+				hexLayer.colorValue((d: any) => { return this.dimensionsMap[this.model.colorDimension].fn(d); });
 
 				// Update the layers control now that we have a reference to the hex layer
-				this.layersControl = {
-					baseLayers: this.layersControl.baseLayers,
-					overlays: {
-						'Path Layer': this.layersControl.overlays['Path Layer'],
-						'Hexbin Layer': hexLayer
-					}
-				};
+				this.layersControl.overlays[toReturn.name] = hexLayer;
 			}
 		};
 		return toReturn;
+
+	}
+
+	apply() {
+
+		// Update the dimensions and redraw
+		this.hexLayers.forEach((hl: any) => {
+			hl.layer.radiusValue((d: any) => { return this.dimensionsMap[this.model.radiusDimension].fn(d); });
+			hl.layer.colorValue((d: any) => { return this.dimensionsMap[this.model.colorDimension].fn(d); });
+			hl.layer.redraw();
+		});
+
 
 	}
 }
